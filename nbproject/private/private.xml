@@ -3,7 +3,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/USER/OneDrive/Documents/NetBeansProjects/Bemoodle/src/java/com/bytebigboss/Bemoodle/system/SystemStatus.java</file>
+            <file>file:/C:/Users/USER/OneDrive/Documents/NetBeansProjects/Bemoodle/src/java/com/bytebigboss/Bemoodle/entity/Store.java</file>
+            <file>file:/C:/Users/USER/OneDrive/Documents/NetBeansProjects/Bemoodle/src/java/com/bytebigboss/Bemoodle/controller/Checkout.java</file>
+            <file>file:/C:/Users/USER/OneDrive/Documents/NetBeansProjects/Bemoodle/src/java/com/bytebigboss/Bemoodle/entity/Order.java</file>
+            <file>file:/C:/Users/USER/OneDrive/Documents/NetBeansProjects/Bemoodle/src/java/com/bytebigboss/Bemoodle/entity/User.java</file>
+            <file>file:/C:/Users/USER/OneDrive/Documents/NetBeansProjects/Bemoodle/src/java/com/bytebigboss/Bemoodle/controller/LoadProfile.java</file>
+            <file>file:/C:/Users/USER/OneDrive/Documents/NetBeansProjects/Bemoodle/src/java/com/bytebigboss/Bemoodle/entity/Address.java</file>
+            <file>file:/C:/Users/USER/OneDrive/Documents/NetBeansProjects/Bemoodle/src/java/com/bytebigboss/Bemoodle/controller/CreateStore.java</file>
+            <file>file:/C:/Users/USER/OneDrive/Documents/NetBeansProjects/Bemoodle/src/java/com/bytebigboss/Bemoodle/controller/LoadCartItems.java</file>
+            <file>file:/C:/Users/USER/OneDrive/Documents/NetBeansProjects/Bemoodle/src/java/com/bytebigboss/Bemoodle/controller/LoadCategories.java</file>
         </group>
     </open-files>
 </project-private>
