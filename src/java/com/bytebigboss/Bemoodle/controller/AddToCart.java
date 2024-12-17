@@ -157,7 +157,7 @@ public class AddToCart extends HttpServlet {
                                         foundCart_DTO.setQty(foundCart_DTO.getQty() + productQty);
 
                                         response_DTO.setSuccess(true);
-                                        response_DTO.setContent("Product updated successfully in session cart");
+                                        response_DTO.setContent("Product update successfully");
 
                                     } else {
 

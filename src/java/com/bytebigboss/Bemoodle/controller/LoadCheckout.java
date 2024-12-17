@@ -6,6 +6,7 @@ import com.bytebigboss.Bemoodle.entity.Cart;
 import com.bytebigboss.Bemoodle.entity.City;
 import com.bytebigboss.Bemoodle.entity.User;
 import com.bytebigboss.Bemoodle.util.HibernateUtil;
+import com.bytebigboss.bcors.Bcors;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import java.io.IOException;
@@ -27,6 +28,8 @@ public class LoadCheckout extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+        Bcors.setCors(request, response);
+        
         Gson gson = new Gson();
 
         JsonObject jsonObject = new JsonObject();
@@ -37,11 +40,11 @@ public class LoadCheckout extends HttpServlet {
 
         if (httpSession.getAttribute("user") != null) {
 
-            UserDTO user_DTO = (UserDTO) httpSession.getAttribute("user");
+            UserDTO userDTO = (UserDTO) httpSession.getAttribute("user");
 
             //get user from db
             Criteria criteria1 = session.createCriteria(User.class);
-            criteria1.add(Restrictions.eq("email", user_DTO.getEmail()));
+            criteria1.add(Restrictions.eq("email", userDTO.getEmail()));
             User user = (User) criteria1.uniqueResult();
 
             //get user last address from db
@@ -56,7 +59,7 @@ public class LoadCheckout extends HttpServlet {
             criteria3.addOrder(Order.asc("name"));
             List<City> cityList = criteria3.list();
 
-            //get cart iyems from db
+            //get cart items from db
             Criteria criteria4 = session.createCriteria(Cart.class);
             criteria4.add(Restrictions.eq("user", user));
             List<Cart> cartList = criteria4.list();
@@ -81,12 +84,19 @@ public class LoadCheckout extends HttpServlet {
         } else {
 
             //not signed in
-            jsonObject.addProperty("meesage", "Not Signed In");
+            jsonObject.addProperty("meesage", "login");
         }
         
         response.setContentType("application/json");
         response.getWriter().write(gson.toJson(jsonObject));
         session.close();
     }
+
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        Bcors.setCors(req, res);
+    }
+    
+    
 
 }

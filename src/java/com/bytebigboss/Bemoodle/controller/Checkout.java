@@ -4,7 +4,7 @@ import com.bytebigboss.Bemoodle.dto.UserDTO;
 import com.bytebigboss.Bemoodle.entity.Address;
 import com.bytebigboss.Bemoodle.entity.Cart;
 import com.bytebigboss.Bemoodle.entity.City;
-import com.bytebigboss.Bemoodle.entity.Order;
+import com.bytebigboss.Bemoodle.entity.Orders;
 import com.bytebigboss.Bemoodle.entity.OrderItem;
 import com.bytebigboss.Bemoodle.entity.OrderStatus;
 import com.bytebigboss.Bemoodle.entity.Product;
@@ -16,9 +16,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -30,141 +28,152 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 
+/**
+ *
+ * @author ByteBigBoss
+ */
 @WebServlet(name = "Checkout", urlPatterns = {"/Checkout"})
 public class Checkout extends HttpServlet {
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
         Gson gson = new Gson();
 
-        JsonObject requestJsonObject = gson.fromJson(request.getReader(), JsonObject.class);
+        JsonObject requestJsonObject = gson.fromJson(req.getReader(), JsonObject.class);
 
-        JsonObject responseJsonObject = new JsonObject();
-        responseJsonObject.addProperty("success", false);
+        JsonObject resObj = new JsonObject();
+        resObj.addProperty("success", false);
 
-        HttpSession httpSession = request.getSession();
+        HttpSession httpSession = req.getSession();
 
         Session session = HibernateUtil.getSessionFactory().openSession();
-        Transaction transaction = session.beginTransaction();
 
-        boolean isCurrentAddress = requestJsonObject.get("isCurrentAddress").getAsBoolean();
-        String first_name = requestJsonObject.get("first_name").getAsString();
-        String last_name = requestJsonObject.get("last_name").getAsString();
-        String city_id = requestJsonObject.get("city_id").getAsString();
-        String address1 = requestJsonObject.get("address1").getAsString();
-        String address2 = requestJsonObject.get("address2").getAsString();
-        String postal_code = requestJsonObject.get("postal_code").getAsString();
-        String mobile = requestJsonObject.get("mobile").getAsString();
+        try {
 
-        if (httpSession.getAttribute("user") != null) {
+            Transaction transaction = session.beginTransaction();
 
-            //user signed in
-            //get user from db
-            UserDTO user_DTO = (UserDTO) httpSession.getAttribute("user");
-            Criteria criteria1 = session.createCriteria(User.class);
-            criteria1.add(Restrictions.eq("email", user_DTO.getEmail()));
-            User user = (User) criteria1.uniqueResult();
+            if (httpSession.getAttribute("user") != null) {
+                //USER FOUND
 
-            if (isCurrentAddress) {
+                boolean isCurrentAddress = requestJsonObject.get("isCurrentAddress").getAsBoolean();
+                String fname = requestJsonObject.get("firstName").getAsString();
+                String lname = requestJsonObject.get("lastName").getAsString();
+                String cityId = requestJsonObject.get("cityId").getAsString();
+                String line1 = requestJsonObject.get("line1").getAsString();
+                String line2 = requestJsonObject.get("line2").getAsString();
+                String pcode = requestJsonObject.get("postalCode").getAsString();
+                String mobile = requestJsonObject.get("mobile").getAsString();
 
-                //get current address
-                Criteria criteria2 = session.createCriteria(Address.class);
-                criteria2.add(Restrictions.eq("user", user));
-                criteria2.addOrder(org.hibernate.criterion.Order.desc("id"));
-                criteria2.setMaxResults(1);
+//                resObj.addProperty("message", "FOUND"+isCurrentAddress+fname+lname+cityId+line1+line2+pcode+mobile);
+                //user signed in
+                //get user from db
+                UserDTO userDTO = (UserDTO) httpSession.getAttribute("user");
+                Criteria criteria1 = session.createCriteria(User.class);
+                criteria1.add(Restrictions.eq("email", userDTO.getEmail()));
+                User user = (User) criteria1.uniqueResult();
 
-                if (criteria2.list().isEmpty()) {
+                if (isCurrentAddress) {
 
-                    //current address not found
-                    responseJsonObject.addProperty("message", "Current address not found. Please create a new address");
+                    //get current address
+                    Criteria criteria2 = session.createCriteria(Address.class);
+                    criteria2.add(Restrictions.eq("user", user));
+                    criteria2.addOrder(org.hibernate.criterion.Order.desc("id"));
+                    criteria2.setMaxResults(1);
 
-                } else {
+                    if (criteria2.list().isEmpty()) {
 
-                    //current address found
-                    //complete
-                    Address address = (Address) criteria2.list().get(0);
-
-                    //complete checkout process
-                    saveOrders(session, transaction, address, user, responseJsonObject);
-
-                }
-
-            } else {
-
-                //create new address
-                if (first_name.isBlank()) {
-
-                    responseJsonObject.addProperty("message", "Please fill first name");
-
-                } else if (last_name.isBlank()) {
-
-                    responseJsonObject.addProperty("message", "Please fill last name");
-
-                } else if (!Validator.VALIDATE_INTEGER(city_id)) {
-
-                    responseJsonObject.addProperty("message", "Invalid city");
-
-                } else {
-
-                    //check city from db
-                    Criteria criteria3 = session.createCriteria(City.class);
-                    criteria3.add(Restrictions.eq("id", Integer.parseInt(city_id)));
-
-                    if (criteria3.list().isEmpty()) {
-
-                        responseJsonObject.addProperty("message", "Invalid city");
+                        //current address not found
+                        resObj.addProperty("message", "Current address not found. Please create a new address");
 
                     } else {
 
-                        //city found
-                        City city = (City) criteria3.list().get(0);
+                        //current address found
+                        //complete
+                        Address address = (Address) criteria2.list().get(0);
 
-                        if (address1.isEmpty()) {
+                        //complete checkout process
+                        saveOrders(session, transaction, address, user, resObj);
 
-                            responseJsonObject.addProperty("message", "Please fill address line 1");
+                    }
 
-                        } else if (address2.isEmpty()) {
+                } else {
 
-                            responseJsonObject.addProperty("message", "Please fill address line 2");
+                    //create new address
+                    if (fname.isEmpty()) {
 
-                        } else if (postal_code.isEmpty()) {
+                        resObj.addProperty("message", "Please fill first name");
 
-                            responseJsonObject.addProperty("message", "Please fill postal code");
+                    } else if (lname.isEmpty()) {
 
-                        } else if (postal_code.length() != 5) {
+                        resObj.addProperty("message", "Please fill last name");
 
-                            responseJsonObject.addProperty("message", "Invalid postal code");
+                    } else if (!Validator.VALIDATE_INTEGER(cityId)) {
 
-                        } else if (!Validator.VALIDATE_INTEGER(postal_code)) {
+                        resObj.addProperty("message", "Invalid city");
 
-                            responseJsonObject.addProperty("message", "Invalid postal code");
+                    } else {
 
-                        } else if (mobile.isEmpty()) {
+                        //check city from db
+                        Criteria criteria3 = session.createCriteria(City.class);
+                        criteria3.add(Restrictions.eq("id", Integer.valueOf(cityId)));
 
-                            responseJsonObject.addProperty("message", "Please fill mobile number");
+                        if (criteria3.list().isEmpty()) {
 
-                        } else if (!Validator.VALIDATE_MOBILE(mobile)) {
-
-                            responseJsonObject.addProperty("message", "Invalid mobile number");
+                            resObj.addProperty("message", "Invalid city");
 
                         } else {
 
-                            //create new address
-                            Address address = new Address();
-                            address.setCity(city);
-                            address.setFirst_name(first_name);
-                            address.setLast_name(last_name);
-                            address.setLine1(address1);
-                            address.setLine2(address2);
-                            address.setMobile(mobile);
-                            address.setPostal_code(postal_code);
-                            address.setUser(user);
+                            //city found
+                            City city = (City) criteria3.list().get(0);
 
-                            session.save(address);
+                            if (line1.isEmpty()) {
 
-                            //complete checkout process
-                            saveOrders(session, transaction, address, user, responseJsonObject);
+                                resObj.addProperty("message", "Please fill address line 1");
+
+                            } else if (line2.isEmpty()) {
+
+                                resObj.addProperty("message", "Please fill address line 2");
+
+                            } else if (pcode.isEmpty()) {
+
+                                resObj.addProperty("message", "Please fill postal code");
+
+                            } else if (pcode.length() != 5) {
+
+                                resObj.addProperty("message", "Invalid postal code");
+
+                            } else if (!Validator.VALIDATE_INTEGER(pcode)) {
+
+                                resObj.addProperty("message", "Invalid postal code");
+
+                            } else if (mobile.isEmpty()) {
+
+                                resObj.addProperty("message", "Please fill mobile number");
+
+                            } else if (!Validator.VALIDATE_MOBILE(mobile)) {
+
+                                resObj.addProperty("message", "Invalid mobile number");
+
+                            } else {
+
+                                //create new address
+                                Address address = new Address();
+                                address.setCity(city);
+                                address.setFirst_name(fname);
+                                address.setLast_name(lname);
+                                address.setLine1(line1);
+                                address.setLine2(line2);
+                                address.setMobile(mobile);
+                                address.setPostal_code(pcode);
+                                address.setUser(user);
+
+                                session.save(address);
+
+                                //complete checkout process
+                                saveOrders(session, transaction, address, user, resObj);
+
+                            }
 
                         }
 
@@ -172,25 +181,25 @@ public class Checkout extends HttpServlet {
 
                 }
 
+            } else {
+                //NOT SIGNED IN
+                resObj.addProperty("message", "login");
             }
 
-        } else {
-
-            //not signed in
-            responseJsonObject.addProperty("message", "User not signed in");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        response.setContentType("application/json");
-        response.getWriter().write(gson.toJson(responseJsonObject));
-
+        res.setContentType("application/json");
+        res.getWriter().write(gson.toJson(resObj));
     }
 
-    private void saveOrders(Session session, Transaction transaction, Address address, User user, JsonObject responseJsonObject) {
+    private void saveOrders(Session session, Transaction transaction, Address address, User user, JsonObject resObj) {
 
         try {
 
             //create order to db
-            Order orders = new Order();
+            Orders orders = new Orders();
             orders.setAddress(address);
             orders.setUser(user);
 
@@ -201,8 +210,8 @@ public class Checkout extends HttpServlet {
             criteria4.add(Restrictions.eq("user", user));
             List<Cart> cartList = criteria4.list();
 
-            //get ordrer_status (1 - paid) from db
-            OrderStatus order_Status = (OrderStatus) session.get(OrderStatus.class, 5); //5 - payment pending
+            //get ordrer_status (5 - paid) from db
+            OrderStatus order_Status = (OrderStatus) session.get(OrderStatus.class, 1); //1 - payment pending
 
             //create order item in db
             double amount = 0;
@@ -244,10 +253,10 @@ public class Checkout extends HttpServlet {
             transaction.commit();
 
             //set payment data
-            String merchant_id = "1228150";
+            String merchant_id = "1227426";
             String formatedAmount = new DecimalFormat("0.00").format(amount);
             String currency = "LKR";
-            String merchantSecret = PayHere.generateMD5("MzM0OTQxMDkwMjEyMTk2MTg5MzUxNTM4NjYzNzc1MzIxNjkzODc0Nw==");
+            String merchantSecret = PayHere.generateMD5("NTE2MzQxMjkyMzIyMDE4NzAzMTM0ODcxODIyMjE3NzIwNTIyMQ==");
 
             JsonObject payhere = new JsonObject();
             payhere.addProperty("merchant_id", merchant_id);
@@ -256,12 +265,12 @@ public class Checkout extends HttpServlet {
             payhere.addProperty("cancel_url", "");
             payhere.addProperty("notify_url", "VerifyPayments");
 
-            payhere.addProperty("first_name", user.getDisplay_name());
-            payhere.addProperty("last_name", "");
+            payhere.addProperty("first_name", address.getFirst_name());
+            payhere.addProperty("last_name", address.getLast_name());
             payhere.addProperty("email", user.getEmail());
-            payhere.addProperty("phone", "0773720462");
-            payhere.addProperty("address", "no23, palliayawattha, pannala");
-            payhere.addProperty("city", "Kurunegala");
+            payhere.addProperty("phone", "0743837327");
+            payhere.addProperty("address", "No. 132/A Mederikanaththa, Ehalape, Maliduwa");
+            payhere.addProperty("city", "Akuressa");
             payhere.addProperty("country", "Sri-Lanka");
             payhere.addProperty("order_id", String.valueOf(order_id));
             payhere.addProperty("items", items);
@@ -273,14 +282,22 @@ public class Checkout extends HttpServlet {
             String md5Hash = PayHere.generateMD5(merchant_id + order_id + formatedAmount + currency + merchantSecret);
             payhere.addProperty("hash", md5Hash);
 
-            responseJsonObject.addProperty("success", true);
-            responseJsonObject.addProperty("message", "Checkout Completed");
+            resObj.addProperty("success", true);
+            resObj.addProperty("message", "Checkout Completed");
 
             Gson gson = new Gson();
-            responseJsonObject.add("payhereJson", gson.toJsonTree(payhere));
+            resObj.add("payhereJson", gson.toJsonTree(payhere));
 
         } catch (Exception e) {
-            transaction.rollback();
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+            resObj.addProperty("message", "An error occurred. Please try again.");
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
 
     }

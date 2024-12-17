@@ -14,7 +14,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "order")
-public class Order implements Serializable {
+public class Orders implements Serializable {
 
     @Id
     @Column(name = "id")
@@ -32,7 +32,7 @@ public class Order implements Serializable {
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
     private Timestamp created_at;
 
-    public Order() {
+    public Orders() {
     }
 
     public int getId() {

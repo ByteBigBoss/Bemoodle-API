@@ -9,6 +9,7 @@
         <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
         <property name="hibernate.show_sql">true</property>
         <mapping class="com.bytebigboss.Bemoodle.entity.User"/>
+        <mapping class="com.bytebigboss.Bemoodle.entity.Address"/>
         <mapping class="com.bytebigboss.Bemoodle.entity.UserStatus"/>
         <mapping class="com.bytebigboss.Bemoodle.entity.Artisan"/>
         <mapping class="com.bytebigboss.Bemoodle.entity.ArtisanStatus"/>
@@ -20,5 +21,11 @@
         <mapping class="com.bytebigboss.Bemoodle.entity.ProductStatus"/>
         <mapping class="com.bytebigboss.Bemoodle.entity.Category"/>
         <mapping class="com.bytebigboss.Bemoodle.entity.SubCategory"/>
+        <mapping class="com.bytebigboss.Bemoodle.entity.City"/>
+        <mapping class="com.bytebigboss.Bemoodle.entity.Country"/>
+        <mapping class="com.bytebigboss.Bemoodle.entity.Order"/>
+        <mapping class="com.bytebigboss.Bemoodle.entity.OrderItem"/>
+        <mapping class="com.bytebigboss.Bemoodle.entity.OrderStatus"/>
+        <mapping class="com.bytebigboss.Bemoodle.entity.State"/>
     </session-factory>
 </hibernate-configuration>
